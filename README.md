@@ -56,6 +56,8 @@ The app should be avalable on [http://localhost:3000/](localhost:3000)
 
 ## TODO - Retrieval-Augmented Generation (RAG) Support.
 
-1. Vector database (Chroma, Pinecone, or Faiss) to store vector data.
+1. Vector database (Chroma, Pinecone, or Faiss) to store document embeddings.
 
-2. Integrate with Ollama.
+2. Create document embeddings.
+
+3. Integrate with Ollama.
