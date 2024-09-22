@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import ReactMarkdown from 'react-markdown';
 
 export default function Home() {
   const [input, setInput] = useState('');
@@ -15,7 +16,6 @@ export default function Home() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
-
     const userMessage = { role: 'user', content: input };
     setConversation(prev => [...prev, userMessage]);
     setInput('');
@@ -42,10 +42,8 @@ export default function Home() {
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-
         const chunk = decoder.decode(value);
         const lines = chunk.split('\n').filter(Boolean);
-
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const data = JSON.parse(line.slice(5));
@@ -76,11 +74,11 @@ export default function Home() {
         {conversation.map((message, index) => (
           <div key={index} className={`mb-4 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
             <div className={`inline-block p-2 rounded-lg ${
-              message.role === 'user' 
-                ? 'bg-blue-600 text-white' 
+              message.role === 'user'
+                ? 'bg-blue-600 text-white'
                 : 'bg-gray-800 text-gray-300'
             }`}>
-              {message.content}
+              <ReactMarkdown>{message.content}</ReactMarkdown>
             </div>
           </div>
         ))}
@@ -96,8 +94,8 @@ export default function Home() {
             placeholder="Enter your message..."
             disabled={loading}
           />
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
             disabled={loading}
           >
