@@ -1,6 +1,6 @@
-# Ollama Next.js Project For Running Local LLM in Docker
+# Ollama Next.js Chroma Project
 
-I've been wanting to learn more about LLMs, and it's a rainy Sunday, so why not?
+Run a local LLM in Docker using Next.js, Ollama & Chroma for Retrieval-Augmented Generation (RAG) support.
 
 This runs the [orca-mini:3b model](https://ollama.com/library/orca-mini:3b).
 
@@ -11,7 +11,7 @@ If you have more memory, try
  - llama2:7b
  - llama2:3b
 
-The model can bet set in `.env.development`
+`OLLAMA_MODEL` set in `.env.development`
 
 ## Prerequisites
 
@@ -42,22 +42,30 @@ Clone the repo
    docker-compose logs -f
    ```
 
-At this point, Ollama should be up and running in Docker. You can test by running
+At this point, Ollama & Chroma should be up and running in Docker.
+
+Test Ollama by running
 
 `curl -X POST http://localhost:11434/api/generate -d '{"model": "orca-mini:3b", "prompt": "Hello, world!"}'`
 
 Be sure to update `"model": "orca-mini:3b"` if you're running a different model.
+
+Test Chroma by running
+
+`curl http://localhost:8000/api/v1/heartbeat`
+
+### Populate Chroma
+
+`npm run populate-chroma`
+
+This uses test CSV data located in `/data/organizations.csv`
+
+See `.env.development` to set `CSV_FILENAME` & `CHROMA_COLLECTION_NAME`
+
+Chroma is queried at prompt time, and the results are sent to Ollama as context along with the prompt.
 
 ### Start the Next.js development server
 
 `npm run dev`
 
 The app should be avalable on [http://localhost:3000/](localhost:3000)
-
-## TODO - Retrieval-Augmented Generation (RAG) Support.
-
-1. Vector database (Chroma, Pinecone, or Faiss) to store document embeddings.
-
-2. Create document embeddings.
-
-3. Integrate with Ollama.
