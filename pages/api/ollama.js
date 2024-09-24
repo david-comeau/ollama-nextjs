@@ -1,46 +1,46 @@
-import axios from 'axios';
+import { initializeChromaCollection, queryChromaCollection } from '@/utils/chromaUtils';
+import { getOllamaResponse, processOllamaStream } from '@/utils/ollamaUtils';
+
+let collection;
+
+const HTTP_METHODS = {
+  POST: 'POST'
+};
+
+const HEADERS = {
+  'Content-Type': 'text/event-stream',
+  'Cache-Control': 'no-cache, no-transform',
+  'Connection': 'keep-alive'
+};
 
 export default async function handler(req, res) {
-  if (req.method === 'POST') {
-    try {
-      res.writeHead(200, {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache, no-transform',
-        'Connection': 'keep-alive',
-      });
-      
-      const response = await axios.post('http://localhost:11434/api/generate', 
-        { ...req.body, model: process.env.OLLAMA_MODEL },
-        { responseType: 'stream' }
-      );
+  if (req.method !== HTTP_METHODS.POST) {
+    res.setHeader('Allow', [HTTP_METHODS.POST]);
+    return res.status(405).end(`Method ${req.method} Not Allowed`);
+  }
 
-      response.data.on('data', (chunk) => {
-        const lines = chunk.toString().split('\n').filter(Boolean);
-        lines.forEach((line) => {
-          const parsed = JSON.parse(line);
-          if (parsed.response) {
-            res.write(`data: ${JSON.stringify({ text: parsed.response })}\n\n`);
-          }
-        });
-      });
-
-      response.data.on('end', () => {
-        res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
-        res.end();
-      });
-
-      response.data.on('error', (error) => {
-        console.error('Error in stream:', error);
-        res.write(`data: ${JSON.stringify({ error: 'Error in Ollama response stream' })}\n\n`);
-        res.end();
-      });
-
-    } catch (error) {
-      console.error('Error details:', error);
-      res.status(500).json({ error: 'Error communicating with Ollama', details: error.message });
+  try {
+    if (!collection) {
+      collection = await initializeChromaCollection();
     }
-  } else {
-    res.setHeader('Allow', ['POST']);
-    res.status(405).end(`Method ${req.method} Not Allowed`);
+
+    res.writeHead(200, HEADERS);
+
+    const { prompt } = req.body;
+    const documents = await queryChromaCollection(collection, prompt);
+    const context = JSON.stringify(documents, null, 2);
+    const augmentedPrompt = `Based on the following context:\n${context}\n\nAnswer the following question: ${prompt}`;
+
+    const ollamaResponse = await getOllamaResponse(augmentedPrompt);
+    await processOllamaStream(ollamaResponse.data, res);
+
+  } catch (error) {
+    console.error('Error in API route:', error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: 'Internal server error', details: error.message });
+    } else {
+      res.write(`data: ${JSON.stringify({ error: 'Stream error', details: error.message })}\n\n`);
+      res.end();
+    }
   }
 }

@@ -16,6 +16,7 @@ export default function Home() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
+
     const userMessage = { role: 'user', content: input };
     setConversation(prev => [...prev, userMessage]);
     setInput('');
@@ -41,28 +42,42 @@ export default function Home() {
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {
+          break;
+        }
+        
         const chunk = decoder.decode(value);
         const lines = chunk.split('\n').filter(Boolean);
+        
         for (const line of lines) {
           if (line.startsWith('data: ')) {
-            const data = JSON.parse(line.slice(5));
-            if (data.text) {
-              assistantMessage.content += data.text;
-              setConversation(prev => [
-                ...prev.slice(0, -1),
-                { ...assistantMessage }
-              ]);
+            try {
+              const data = JSON.parse(line.slice(5));
+              if (data.text) {
+                assistantMessage.content += data.text;
+                setConversation(prev => [
+                  ...prev.slice(0, -1),
+                  { ...assistantMessage }
+                ]);
+              }
+              if (data.error) {
+                throw new Error(data.error);
+              }
+              if (data.done) {
+                setLoading(false);
+              }
+            } catch (error) {
+              console.error('Error parsing SSE data:', error, 'Raw line:', line);
+              throw new Error(`Error processing response: ${error.message}`);
             }
-            if (data.done) {
-              setLoading(false);
-            }
+          } else {
+            console.warn('Received non-SSE line:', line);
           }
         }
       }
     } catch (error) {
-      console.error('Error:', error);
-      const errorMessage = { role: 'assistant', content: 'Error communicating with Ollama: ' + error.message };
+      console.error('Error in handleSubmit:', error);
+      const errorMessage = { role: 'assistant', content: `Error: ${error.message}. Please try again.` };
       setConversation(prev => [...prev, errorMessage]);
       setLoading(false);
     }
@@ -99,7 +114,7 @@ export default function Home() {
             className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50"
             disabled={loading}
           >
-            {loading ? 'Sending...' : 'Send'}
+            {loading ? 'Thinking...' : 'Send'}
           </button>
         </div>
       </form>

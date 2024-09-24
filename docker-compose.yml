@@ -11,5 +11,13 @@ services:
     entrypoint: []
     command: sh -c "ollama serve & sleep 10 && ollama pull $OLLAMA_MODEL && wait"
 
+  chroma:
+    image: ghcr.io/chroma-core/chroma:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/chroma
+
 volumes:
   ollama_data:
+  chroma_data:
