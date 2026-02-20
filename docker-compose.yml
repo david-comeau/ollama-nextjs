@@ -12,7 +12,7 @@ services:
     command: sh -c "ollama serve & sleep 10 && ollama pull $OLLAMA_MODEL && wait"
 
   chroma:
-    image: ghcr.io/chroma-core/chroma:latest
+    image: ghcr.io/chroma-core/chroma:1.5.0
     ports:
       - "8000:8000"
     volumes:

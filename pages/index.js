@@ -6,12 +6,19 @@ export default function Home() {
   const [conversation, setConversation] = useState([]);
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const inputRef = useRef(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }
 
   useEffect(scrollToBottom, [conversation]);
+
+  useEffect(() => {
+    if (!loading) {
+      inputRef.current?.focus();
+    }
+  }, [loading]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -102,6 +109,7 @@ export default function Home() {
       <form onSubmit={handleSubmit} className="p-4 bg-gray-800 border-t border-gray-700">
         <div className="flex">
           <input
+            ref={inputRef}
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}

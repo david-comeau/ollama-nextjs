@@ -1,6 +1,6 @@
 import { ChromaClient } from 'chromadb';
 
-const chromaClient = new ChromaClient({ path: 'http://localhost:8000' });
+const chromaClient = new ChromaClient();
 
 export async function initializeChromaCollection() {
   try {

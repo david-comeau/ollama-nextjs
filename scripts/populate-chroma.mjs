@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const chromaClient = new ChromaClient({ path: "http://localhost:8000" });
+const chromaClient = new ChromaClient();
 const csvFilePath = path.resolve(process.cwd(), 'data', process.env.CSV_FILENAME || 'default.csv');
 const collectionName = process.env.CHROMA_COLLECTION_NAME || 'default_collection';
 
